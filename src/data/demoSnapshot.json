@@ -1,0 +1,35 @@
+{
+  "_notice": "OFFLINE DEMO DATA — Bundled snapshot for venue network resilience. Real login and live API requests take priority when connected.",
+  "snapshotVersion": "1.0.0",
+  "generatedAt": "2026-11-12T08:00:00.000Z",
+  "plots": {
+    "TS-RR-01": {
+      "id": "TS-RR-01",
+      "farmerName": "Mallesh Goud",
+      "district": "Ranga Reddy",
+      "state": "Telangana",
+      "areaHa": 1.25,
+      "utmZone": 44,
+      "grossMeanCo2ePerHa": 4.31,
+      "finalCreditsPerHa": 1.76,
+      "totalIssuableCo2e": 2.20,
+      "status": "active"
+    },
+    "TS-SDP-02": {
+      "id": "TS-SDP-02",
+      "farmerName": "Lakshmi Bai",
+      "district": "Siddipet",
+      "state": "Telangana",
+      "areaHa": 0.85,
+      "utmZone": 44,
+      "grossMeanCo2ePerHa": 3.82,
+      "finalCreditsPerHa": 1.45,
+      "totalIssuableCo2e": 1.23,
+      "status": "active"
+    }
+  },
+  "auditGenesis": {
+    "index": 0,
+    "currentHash": "1030ec7633ac4a12f5a1491c6a04d6874850a9372d39cd3e612c39deef46adc0"
+  }
+}

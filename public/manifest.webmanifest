@@ -1,0 +1,16 @@
+{
+  "short_name": "Carbon Kheti",
+  "name": "Carbon Kheti - Smallholder Agroforestry MRV",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#1a3c2a",
+  "theme_color": "#1a3c2a",
+  "display": "standalone",
+  "orientation": "portrait"
+}

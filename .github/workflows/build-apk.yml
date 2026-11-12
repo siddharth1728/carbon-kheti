@@ -1,0 +1,119 @@
+name: Build Carbon Kheti Android APK & Run Test Suites
+
+on:
+  push:
+    branches: [main, master]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  test-and-build:
+    name: Test, Build & Package Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      # 1. Test Backend
+      - name: Install Python Dependencies & Test FastAPI Backend
+        run: |
+          pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          python -m pytest backend/tests/test_backend.py -v
+
+      # 2. Test Independent Mathematical Verification
+      - name: Verify Golden Math (verify.py)
+        run: |
+          python verify.py
+
+      # 3. Test Frontend Engine
+      - name: Install Node Dependencies & Run Acceptance Tests
+        run: |
+          npm ci
+          npm test
+
+      # 4. Build Production Web Bundle
+      - name: Build Web Application
+        run: |
+          npm run build
+
+      # 5. Sync Capacitor Android
+      - name: Sync Capacitor Android Assets
+        run: |
+          npx cap sync android
+
+      # 6. Build Android Debug APK
+      - name: Assemble Android Debug APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
+
+      # 7. Upload Debug APK Artifact
+      - name: Upload Debug APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CarbonKheti-FarmerApp-Debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      # 8. Assemble Release APK (if Tagged Release)
+      - name: Assemble Android Release APK
+        if: startsWith(github.ref, 'refs/tags/v')
+        working-directory: android
+        run: |
+          ./gradlew assembleRelease --stacktrace
+
+      - name: Sign Release APK with Keystore Secret
+        if: startsWith(github.ref, 'refs/tags/v') && env.ANDROID_SIGNING_KEY != ''
+        env:
+          ANDROID_SIGNING_KEY: ${{ secrets.ANDROID_SIGNING_KEY }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_SIGNING_KEY" | base64 --decode > release.keystore
+          jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+            -keystore release.keystore \
+            -storepass "$KEYSTORE_PASSWORD" \
+            -keypass "$KEY_PASSWORD" \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk "$KEY_ALIAS"
+          $ANDROID_HOME/build-tools/34.0.0/zipalign -v 4 \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            android/app/build/outputs/apk/release/CarbonKheti-v${GITHUB_REF#refs/tags/v}.apk
+
+      - name: Attach APK to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            android/app/build/outputs/apk/debug/app-debug.apk
+            android/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
