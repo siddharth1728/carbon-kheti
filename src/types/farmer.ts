@@ -29,7 +29,7 @@ export interface WitnessDetails {
 export interface FarmerConsentState {
   agreed: boolean;
   timestamp: string | null;
-  consentMethod: 'drawn_signature' | 'thumb_impression' | 'witnessed_press';
+  consentMethod: 'drawn_signature' | 'thumb_impression' | 'witnessed_press' | 'digital_acceptance';
   signature: string | null;
   thumbImage: string | null;
   version: string;

@@ -442,8 +442,8 @@ export const useMRVStore = create<MRVStoreState>((set, get) => {
     farmerConsent: {
       agreed: true,
       timestamp: '2026-11-12T08:05:00.000Z',
-      consentMethod: 'drawn_signature',
-      signature: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="50"><path d="M10 35 Q 30 10, 50 30 T 90 20 T 130 35 T 180 25" stroke="%231a3c2a" stroke-width="2.5" fill="none"/></svg>',
+      consentMethod: 'digital_acceptance',
+      signature: null,
       thumbImage: null,
       version: 'v1.2-FPIC-TELANGANA',
       witness: {
