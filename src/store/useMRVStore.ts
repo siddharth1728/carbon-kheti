@@ -27,7 +27,7 @@ import {
   getUtmZoneForLon,
 } from '../core/geometry';
 import { analyzePhotoEvidenceComprehensive } from '../core/photoAnalysis';
-import { UserSession, attemptLogin } from '../core/authEngine';
+import { UserSession, attemptLogin, attemptThumbprintLogin } from '../core/authEngine';
 import * as turf from '@turf/turf';
 
 export const COMPASS_SLOTS: { id: CompassSlotId; label: string; headingDeg: number }[] = [
@@ -69,6 +69,7 @@ interface MRVStoreState {
   // Authentication & RBAC
   currentUser: UserSession | null;
   login: (phone: string, pass: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithThumbprint: () => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
 
   // App Navigation & Persona
@@ -192,21 +193,13 @@ export const useMRVStore = create<MRVStoreState>((set, get) => {
 
   return {
     // Auth & RBAC
-    currentUser: {
-      userId: 'user_9849012345',
-      phone: '+919849012345',
-      name: 'Mallesh Goud (Farmer)',
-      role: 'farmer',
-      allowedPlotIds: ['TS-RR-01'],
-      token: 'ck_demo_token_farmer',
-      expiresAt: new Date(Date.now() + 86400000).toISOString(),
-    },
+    currentUser: null,
     login: async (phone, pass) => {
       const res = await attemptLogin(phone, pass);
       if (res.success && res.session) {
         set({ currentUser: res.session });
         if (res.session.role === 'farmer') {
-          set({ personaMode: 'farmer', selectedPlotId: 'TS-RR-01' });
+          set({ personaMode: 'farmer', selectedPlotId: 'TS-RR-01', farmerStep: 'consent' });
         } else if (res.session.role === 'buyer') {
           set({ personaMode: 'public_verify' });
         } else {
@@ -215,6 +208,19 @@ export const useMRVStore = create<MRVStoreState>((set, get) => {
         return { success: true };
       }
       return { success: false, error: res.error };
+    },
+    loginWithThumbprint: async () => {
+      const res = await attemptThumbprintLogin();
+      if (res.success && res.session) {
+        set({
+          currentUser: res.session,
+          personaMode: 'farmer',
+          selectedPlotId: 'TS-RR-01',
+          farmerStep: 'consent',
+        });
+        return { success: true };
+      }
+      return { success: false, error: res.error || 'Biometric verification failed.' };
     },
     logout: () => {
       set({ currentUser: null, personaMode: 'farmer', farmerStep: 'welcome' });

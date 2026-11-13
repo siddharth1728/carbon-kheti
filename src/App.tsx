@@ -10,7 +10,7 @@ import { PublicVerifyPage } from './components/public/PublicVerifyPage';
 import { AdversarialPage } from './components/adversarial/AdversarialPage';
 import { UpdateRequiredModal } from './components/common/UpdateRequiredModal';
 import { onUpdateRequired, onServerWakeState } from './api/client';
-import { Leaf, ShieldCheck, Heart, Loader2 } from 'lucide-react';
+import { Leaf, Loader2 } from 'lucide-react';
 
 export default function App() {
   const { personaMode, setPersonaMode, guidedDemo, nextDemoStep, farmerStep, setFarmerStep, walk } =
@@ -123,59 +123,67 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#faf7f2] text-[#1a3c2a] font-sans antialiased flex flex-col selection:bg-[#2d6a4f] selection:text-white">
-      {/* Sticky Top Navigation */}
-      <TopNavbar />
+      {/* If in Farmer App, render only the Farmer Mobile Phone App */}
+      {personaMode === 'farmer' ? (
+        <main className="flex-1 w-full">
+          <FarmerAppContainer />
+        </main>
+      ) : (
+        <>
+          {/* Sticky Top Navigation for Verifier/Auditor View */}
+          <TopNavbar />
 
-      {/* Server Wake-up notification banner (Cold start handling) */}
-      {serverWaking && (
-        <div className="bg-amber-500 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-center gap-2 shadow-sm animate-pulse sticky top-14 z-30">
-          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          <span>Connecting to server / Backend waking up (attempt {serverRetryCount} of 3)... Stand by.</span>
-        </div>
+          {/* Server Wake-up notification banner (Cold start handling) */}
+          {serverWaking && (
+            <div className="bg-amber-500 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-center gap-2 shadow-sm animate-pulse sticky top-14 z-30">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Connecting to server / Backend waking up (attempt {serverRetryCount} of 3)... Stand by.</span>
+            </div>
+          )}
+
+          {/* Main Persona Content Viewport */}
+          <main className="flex-1 w-full pb-20">
+            {personaMode === 'verifier' && <VerifierConsoleContainer />}
+            {personaMode === 'public_verify' && <PublicVerifyPage />}
+            {personaMode === 'adversarial' && <AdversarialPage />}
+          </main>
+
+          {/* Floating Guided 4-Minute Demo Control Bar */}
+          <GuidedDemoBar />
+
+          {/* Persistent Methods & Limitations Modal */}
+          <MethodsModal />
+
+          {/* Production Footer */}
+          <footer className="bg-[#132d20] text-[#b7e4c7] border-t border-[#2d6a4f] py-6 px-4">
+            <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+              <div className="flex items-center space-x-2">
+                <Leaf className="w-4 h-4 text-[#52b788]" />
+                <span className="font-bold text-white">Carbon Kheti</span>
+                <span className="text-slate-500">•</span>
+                <span>INNOVASIA 2K26 (PS-13) • Team DoSA</span>
+              </div>
+
+              <div className="flex items-center gap-6 text-[#95d5b2]">
+                <button
+                  type="button"
+                  onClick={() => setPersonaMode('farmer')}
+                  className="px-3 py-1 bg-[#2d6a4f] hover:bg-[#52b788] text-white rounded-lg font-bold transition-all cursor-pointer"
+                >
+                  ← Return to Farmer Mobile App
+                </button>
+              </div>
+
+              <div className="text-slate-400 text-center md:text-right font-mono text-[11px]">
+                UTM Zones 43N &amp; 44N • WGS84 EPSG:4326
+              </div>
+            </div>
+          </footer>
+        </>
       )}
-
-      {/* Main Persona Content Viewport */}
-      <main className="flex-1 w-full pb-20">
-        {personaMode === 'farmer' && <FarmerAppContainer />}
-        {personaMode === 'verifier' && <VerifierConsoleContainer />}
-        {personaMode === 'public_verify' && <PublicVerifyPage />}
-        {personaMode === 'adversarial' && <AdversarialPage />}
-      </main>
-
-      {/* Floating Guided 4-Minute Demo Control Bar */}
-      <GuidedDemoBar />
-
-      {/* Persistent Methods & Limitations Modal */}
-      <MethodsModal />
 
       {/* Version Contract Update Modal */}
       <UpdateRequiredModal info={updateInfo} onDismiss={() => setUpdateInfo(null)} />
-
-      {/* Production Footer */}
-      <footer className="bg-[#132d20] text-[#b7e4c7] border-t border-[#2d6a4f] py-6 px-4">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <div className="flex items-center space-x-2">
-            <Leaf className="w-4 h-4 text-[#52b788]" />
-            <span className="font-bold text-white">Carbon Kheti</span>
-            <span className="text-slate-500">•</span>
-            <span>INNOVASIA 2K26 (PS-13) • Team DoSA</span>
-          </div>
-
-          <div className="flex items-center gap-6 text-[#95d5b2]">
-            <span className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#52b788]" />
-              Conservative 95% Lower-Bound Crediting
-            </span>
-            <span className="flex items-center gap-1">
-              Made with <Heart className="w-3.5 h-3.5 text-rose-400 fill-current" /> for Telangana Smallholders
-            </span>
-          </div>
-
-          <div className="text-slate-400 text-center md:text-right font-mono text-[11px]">
-            UTM Zones 43N &amp; 44N • WGS84 EPSG:4326 • Not a Registry/Marketplace
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }
